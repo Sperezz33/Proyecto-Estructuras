@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SkyBalance AVL</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+
+<body>
+    <!-- Cabecera -->
+    <header>
+        <h1>✈️ SkyBalance AVL</h1>
+    </header>
+
+    <!-- Panel de controles -->
+    <section class="controls">
+        <input type="file" id="fileInput">
+
+        <button id="insertBtn">Insertar</button>
+        <button id="deleteBtn">Eliminar nodo</button>
+        <input type="number" id="deleteInput" placeholder="Código">
+
+        <input type="number" id="searchInput" placeholder="Buscar código">
+        <button id="searchBtn">Buscar vuelo</button>
+        <button id="updateBtn">Modificar Vuelo</button>
+
+        <button id="cancelBtn">Cancelar Rama</button>
+
+        <button id="undoBtn">Deshacer</button>
+        <button id="versionBtn">Guardar Versión</button>
+        <button id="loadVersionBtn">Cargar Versión</button>
+
+        <button id="loadQueueBtn">Cargar a Cola</button>
+        <button id="processQueueBtn">Procesar Cola</button>
+
+        <button id="stressModeBtn">Activar/Desactivar Estrés</button>
+        <button id="stressInsertBtn">Inserción Masiva</button>
+        <button id="rebalanceBtn">Rebalancear</button>
+        <button id="deleteMinBtn">Eliminar menos rentable</button>
+        <button id="auditBtn">Auditar AVL</button>
+
+        <button id="setDepthBtn">Configurar Profundidad Límite</button>
+        <button id="penaltyBtn">Aplicar Penalización</button>
+        <button id="exportBtn">Exportar AVL JSON</button>
+    </section>
+
+    <!-- Sección principal -->
+    <section class="main">
+        <!-- Árbol -->
+        <div class="tree-container">
+            <h2>Árbol AVL vs BST</h2>
+            <canvas id="treeCanvas"></canvas>
+        </div>
+
+        <!-- Panel derecho -->
+        <div class="metrics">
+            <h2>Métricas</h2>
+            <div id="metricsPanel"></div>
+
+            <h3>ESTRUCTURA</h3>
+            <p><strong>Raíz AVL:</strong> ${avlRoot}</p>
+            <p><strong>Raíz BST:</strong> ${bstRoot}</p>
+            <p><strong>Profundidad AVL:</strong> ${avlDepth}</p>
+            <p><strong>Profundidad BST:</strong> ${bstDepth}</p>
+            <p><strong>Cancelaciones masivas:</strong> ${avl.massiveDeletions}</p>
+            <p><strong>Profit Total:</strong> $${totalProfit}</p>
+
+            <hr>
+
+            <h3>Top 5 Vuelos Más Rentables</h3>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Origen</th>
+                        <th>Destino</th>
+                        <th>Profit</th>
+                    </tr>
+                </thead>
+                <tbody id="topTable"></tbody>
+            </table>
+
+            <hr>
+
+            <h3>Información de Vuelo</h3>
+            <div id="flightInfo">
+                <p>Busque un vuelo para ver su información</p>
+            </div>
+
+            <hr>
+        </div>
+    </section>
+
+    <!-- Script principal -->
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,89 @@
+/* ===========================================
+   SKYBALANCE AVL - HOJA DE ESTILOS PRINCIPAL
+   Tema oscuro profesional para visualización de árboles
+   Diseño responsivo con layout flexbox
+   =========================================== */
+
+/* Estilos base del documento */
+body {
+    margin: 0; /* Eliminar márgenes por defecto del navegador */
+    font-family: Arial, sans-serif; /* Fuente sans-serif moderna */
+    background: #0f172a; /* Fondo azul oscuro (slate-900) */
+    color: white; /* Texto blanco para contraste */
+}
+
+/* Cabecera de la aplicación */
+header {
+    text-align: center; /* Centrar el título */
+    padding: 20px; /* Espaciado interno */
+    background: #1e293b; /* Fondo ligeramente más claro (slate-800) */
+}
+
+/* Sección de controles (botones e input) */
+.controls {
+    display: flex; /* Layout flexible horizontal */
+    flex-wrap: wrap; /* Permitir saltos de línea en pantallas pequeñas */
+    gap: 10px; /* Espacio entre elementos */
+    padding: 15px; /* Espaciado interno */
+    justify-content: center; /* Centrar elementos horizontalmente */
+}
+
+/* Estilos para todos los botones */
+button {
+    padding: 10px 15px; /* Espaciado interno (arriba/abajo, izquierda/derecha) */
+    border: none; /* Sin borde visible */
+    background: #3b82f6; /* Fondo azul (blue-500) */
+    color: white; /* Texto blanco */
+    cursor: pointer; /* Cursor de mano al pasar */
+    border-radius: 8px; /* Bordes redondeados */
+    transition: 0.3s; /* Transición suave para efectos hover */
+}
+
+/* Efecto hover para botones */
+button:hover {
+    background: #2563eb; /* Azul más oscuro al pasar el mouse (blue-600) */
+}
+
+/* Contenedor principal de la aplicación */
+.main {
+    display: flex; /* Layout horizontal para canvas y métricas */
+    height: calc(100vh - 120px); /* Altura completa menos header y controles */
+    /* ajusta según header */
+}
+
+/* Contenedor del canvas de visualización de árboles */
+.tree-container {
+    flex: 3; /* Ocupa 3 partes del espacio disponible */
+    display: flex; /* Layout vertical */
+    flex-direction: column; /* Elementos apilados verticalmente */
+    overflow: auto; /* Scroll si el contenido excede */
+}
+
+/* Panel lateral de métricas */
+.metrics {
+    flex: 1; /* Ocupa 1 parte del espacio disponible */
+    background: #1e293b; /* Fondo gris azulado (slate-800) */
+    padding: 20px; /* Espaciado interno */
+}
+
+/* Estilos para el elemento canvas */
+canvas {
+    width: 100%; /* Ancho completo del contenedor */
+    height: 100%; /* Alto completo del contenedor */
+    background: #020617; /* Fondo negro azulado muy oscuro */
+    border-radius: 10px; /* Bordes redondeados */
+}
+
+/* Estilos específicos para el canvas de árboles */
+#treeCanvas {
+    flex: 1; /* Ocupa todo el espacio disponible en su contenedor */
+    width: 100%; /* Ancho completo */
+    background: #020617; /* Fondo consistente con canvas general */
+    height: 100%; /* Alto completo */
+}
+
+/* Asegurar que html y body ocupen toda la altura de la ventana */
+html,
+body {
+    height: 100%; /* Altura completa de la ventana */
+}
