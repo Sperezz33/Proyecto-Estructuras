@@ -33,4 +33,4 @@ class Stack {
     }
 }
 
-export default Stack;
+// Stack disponible globalmente

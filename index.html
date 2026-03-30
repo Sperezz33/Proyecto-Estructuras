@@ -3,97 +3,416 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>SkyBalance AVL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SkyBalance AVL – Sistema inteligente de gestión de vuelos con árbol AVL autoequilibrado">
+    <title>SkyBalance AVL – Sistema de Gestión Aérea</title>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
 
 <body>
-    <!-- Cabecera -->
-    <header>
-        <h1>✈️ SkyBalance AVL</h1>
-    </header>
 
-    <!-- Panel de controles -->
-    <section class="controls">
-        <input type="file" id="fileInput">
+<!-- ═══════════════════════════════════════════════════════════ HEADER -->
+<header>
+    <div class="header-brand">
+        <span class="logo">✈️</span>
+        <div>
+            <h1>SkyBalance AVL</h1>
+            <div class="subtitle">Sistema de Gestión Aérea</div>
+        </div>
+    </div>
+    <div class="header-badges">
+        <span class="badge badge-normal" id="modeBadge">⚡ Modo Normal</span>
+        <span class="badge badge-depth" id="depthBadge">📏 Profundidad: <span id="depthVal">3</span></span>
+        <span class="badge badge-normal" id="queueBadge">🗂️ Cola: <span id="queueSize">0</span></span>
+    </div>
+</header>
 
-        <button id="insertBtn">Insertar</button>
-        <button id="deleteBtn">Eliminar nodo</button>
-        <input type="number" id="deleteInput" placeholder="Código">
+<!-- ═══════════════════════════════════════════════════════════ LAYOUT -->
+<div class="app-layout">
 
-        <input type="number" id="searchInput" placeholder="Buscar código">
-        <button id="searchBtn">Buscar vuelo</button>
-        <button id="updateBtn">Modificar Vuelo</button>
+    <!-- ──────────────────────────────────── SIDEBAR IZQUIERDO (controles) -->
+    <aside class="sidebar">
 
-        <button id="cancelBtn">Cancelar Rama</button>
-
-        <button id="undoBtn">Deshacer</button>
-        <button id="versionBtn">Guardar Versión</button>
-        <button id="loadVersionBtn">Cargar Versión</button>
-
-        <button id="loadQueueBtn">Cargar a Cola</button>
-        <button id="processQueueBtn">Procesar Cola</button>
-
-        <button id="stressModeBtn">Activar/Desactivar Estrés</button>
-        <button id="stressInsertBtn">Inserción Masiva</button>
-        <button id="rebalanceBtn">Rebalancear</button>
-        <button id="deleteMinBtn">Eliminar menos rentable</button>
-        <button id="auditBtn">Auditar AVL</button>
-
-        <button id="setDepthBtn">Configurar Profundidad Límite</button>
-        <button id="penaltyBtn">Aplicar Penalización</button>
-        <button id="exportBtn">Exportar AVL JSON</button>
-    </section>
-
-    <!-- Sección principal -->
-    <section class="main">
-        <!-- Árbol -->
-        <div class="tree-container">
-            <h2>Árbol AVL vs BST</h2>
-            <canvas id="treeCanvas"></canvas>
+        <!-- CARGA DE ARCHIVO -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">📂 Cargar Árbol</div>
+            <div class="form-field">
+                <label class="field-label" for="depthLimitInput">Profundidad límite (antes de cargar)</label>
+                <input class="input" type="number" id="depthLimitInput" value="3" min="1" max="50">
+            </div>
+            <input class="input" type="file" id="fileInput" accept=".json">
         </div>
 
-        <!-- Panel derecho -->
-        <div class="metrics">
-            <h2>Métricas</h2>
-            <div id="metricsPanel"></div>
+        <!-- GESTIÓN DE NODOS -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">✏️ Gestión de Nodos</div>
+            <button class="btn btn-primary" id="insertBtn">➕ Insertar Vuelo</button>
+            <button class="btn btn-secondary" id="updateBtn">✏️ Modificar Vuelo</button>
 
-            <h3>ESTRUCTURA</h3>
-            <p><strong>Raíz AVL:</strong> ${avlRoot}</p>
-            <p><strong>Raíz BST:</strong> ${bstRoot}</p>
-            <p><strong>Profundidad AVL:</strong> ${avlDepth}</p>
-            <p><strong>Profundidad BST:</strong> ${bstDepth}</p>
-            <p><strong>Cancelaciones masivas:</strong> ${avl.massiveDeletions}</p>
-            <p><strong>Profit Total:</strong> $${totalProfit}</p>
+            <div class="divider"></div>
 
-            <hr>
-
-            <h3>Top 5 Vuelos Más Rentables</h3>
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Origen</th>
-                        <th>Destino</th>
-                        <th>Profit</th>
-                    </tr>
-                </thead>
-                <tbody id="topTable"></tbody>
-            </table>
-
-            <hr>
-
-            <h3>Información de Vuelo</h3>
-            <div id="flightInfo">
-                <p>Busque un vuelo para ver su información</p>
+            <div class="input-row">
+                <input class="input" type="number" id="deleteInput" placeholder="Código numérico">
+                <button class="btn btn-danger" id="deleteBtn" style="white-space:nowrap;width:auto;padding:8px 10px">🗑️ Eliminar</button>
             </div>
 
-            <hr>
+            <button class="btn btn-warn" id="cancelBtn">🚫 Cancelar Rama</button>
+            <button class="btn btn-ghost" id="undoBtn">↩️ Deshacer (Ctrl+Z)</button>
         </div>
-    </section>
 
-    <!-- Script principal -->
-    <script type="module" src="js/app.js"></script>
+        <!-- BÚSQUEDA -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">🔍 Búsqueda</div>
+            <div class="input-row">
+                <input class="input" type="number" id="searchInput" placeholder="Código numérico">
+                <button class="btn btn-secondary" id="searchBtn" style="width:auto;padding:8px 10px">🔍</button>
+            </div>
+        </div>
+
+        <!-- VERSIONADO -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">💾 Versionado</div>
+            <button class="btn btn-success" id="versionBtn">💾 Guardar Versión</button>
+            <button class="btn btn-ghost" id="loadVersionBtn">📂 Gestionar Versiones</button>
+            <button class="btn btn-ghost" id="exportVersionsBtn">⬇️ Exportar Versiones</button>
+        </div>
+
+        <!-- COLA DE INSERCIONES -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">🗂️ Cola de Inserciones</div>
+            <button class="btn btn-secondary" id="addToQueueBtn">➕ Agregar a Cola</button>
+            <button class="btn btn-ghost" id="loadQueueBtn">📂 Cargar desde JSON</button>
+            <button class="btn btn-primary" id="processQueueBtn">▶️ Procesar Cola</button>
+            <button class="btn btn-ghost" id="viewQueueBtn">👁️ Ver Cola</button>
+        </div>
+
+        <!-- MODO ESTRÉS -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">⚠️ Modo Estrés</div>
+            <button class="btn btn-warn" id="stressModeBtn">🔥 Activar/Desactivar Estrés</button>
+            <button class="btn btn-ghost" id="rebalanceBtn">🔄 Rebalanceo Global</button>
+            <button class="btn btn-danger" id="auditBtn" disabled>🔎 Verificar Propiedad AVL</button>
+        </div>
+
+        <!-- PENALIZACIÓN Y ANÁLISIS -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">📊 Análisis</div>
+            <div class="form-field">
+                <label class="field-label" for="newDepthInput">Nueva profundidad límite</label>
+                <div class="input-row">
+                    <input class="input" type="number" id="newDepthInput" placeholder="Ej: 4" min="1">
+                    <button class="btn btn-warn" id="setDepthBtn" style="width:auto;padding:8px 10px">✓</button>
+                </div>
+            </div>
+            <button class="btn btn-danger" id="deleteMinBtn">💸 Eliminar Menos Rentable</button>
+            <button class="btn btn-ghost" id="stressInsertBtn">⚡ Inserción Masiva (200)</button>
+        </div>
+
+        <!-- EXPORTAR -->
+        <div class="ctrl-group">
+            <div class="ctrl-group-title">⬇️ Exportar</div>
+            <button class="btn btn-success" id="exportBtn">📄 Exportar Árbol JSON</button>
+        </div>
+
+    </aside>
+
+    <!-- ──────────────────────────────────── CENTRO (canvas) -->
+    <main class="canvas-area">
+        <div class="canvas-label">
+            <span class="canvas-label-item"><span class="dot dot-avl"></span>AVL</span>
+            <span class="canvas-label-item"><span class="dot dot-bst"></span>BST</span>
+            <span class="canvas-label-item"><span class="dot dot-crit"></span>Crítico</span>
+            <span class="canvas-label-item"><span class="dot dot-err"></span>Desbalance</span>
+        </div>
+        <canvas id="treeCanvas"></canvas>
+    </main>
+
+    <!-- ──────────────────────────────────── SIDEBAR DERECHO (métricas) -->
+    <aside class="metrics-panel">
+
+        <!-- Estructura -->
+        <div class="metric-card">
+            <div class="metric-title">🌳 Estructura</div>
+            <div class="metric-row"><span class="metric-label">Raíz AVL</span><span class="metric-value" id="mAvlRoot">—</span></div>
+            <div class="metric-row"><span class="metric-label">Raíz BST</span><span class="metric-value" id="mBstRoot">—</span></div>
+            <div class="metric-row"><span class="metric-label">Profundidad AVL</span><span class="metric-value" id="mAvlDepth">—</span></div>
+            <div class="metric-row"><span class="metric-label">Profundidad BST</span><span class="metric-value" id="mBstDepth">—</span></div>
+            <div class="metric-row"><span class="metric-label">Nodos AVL</span><span class="metric-value" id="mAvlNodes">—</span></div>
+            <div class="metric-row"><span class="metric-label">Hojas AVL</span><span class="metric-value" id="mAvlLeaves">—</span></div>
+            <div class="metric-row"><span class="metric-label">Hojas BST</span><span class="metric-value" id="mBstLeaves">—</span></div>
+            <div class="metric-row"><span class="metric-label">Cancelaciones masivas</span><span class="metric-value" id="mCancels">0</span></div>
+        </div>
+
+        <!-- Rotaciones -->
+        <div class="metric-card">
+            <div class="metric-title">🔄 Rotaciones AVL</div>
+            <div class="rot-badges">
+                <span class="rot-badge rot-LL">LL: <span id="rLL">0</span></span>
+                <span class="rot-badge rot-RR">RR: <span id="rRR">0</span></span>
+                <span class="rot-badge rot-LR">LR: <span id="rLR">0</span></span>
+                <span class="rot-badge rot-RL">RL: <span id="rRL">0</span></span>
+            </div>
+            <div class="metric-row" style="margin-top:6px"><span class="metric-label">Total</span><span class="metric-value" id="rTotal">0</span></div>
+            <div class="metric-row"><span class="metric-label">Costo último rebalanceo</span><span class="metric-value" id="rLastCost">—</span></div>
+        </div>
+
+        <!-- Rentabilidad -->
+        <div class="metric-card">
+            <div class="metric-title">💰 Rentabilidad</div>
+            <div class="metric-row"><span class="metric-label">Profit Total</span><span class="metric-value" id="mTotalProfit">—</span></div>
+            <div class="metric-row"><span class="metric-label">Promedio</span><span class="metric-value" id="mAvgProfit">—</span></div>
+            <div class="metric-row"><span class="metric-label">Mayor</span><span class="metric-value" id="mMaxProfit">—</span></div>
+            <div class="metric-row"><span class="metric-label">Menor</span><span class="metric-value" id="mMinProfit">—</span></div>
+            <div class="metric-row"><span class="metric-label">Nodos críticos</span><span class="metric-value" id="mCritical">0</span></div>
+        </div>
+
+        <!-- Top vuelos -->
+        <div class="metric-card">
+            <div class="metric-title">🏆 Top 5 Más Rentables</div>
+            <table class="top-table">
+                <thead><tr><th>Cód</th><th>Ruta</th><th>Profit</th></tr></thead>
+                <tbody id="topTable"></tbody>
+            </table>
+        </div>
+
+        <!-- Recorridos -->
+        <div class="metric-card">
+            <div class="metric-title">📋 Recorridos AVL</div>
+            <div style="font-size:.7rem;color:var(--text-2);margin-bottom:3px">BFS (anchura)</div>
+            <div class="traversal-box" id="tBFS">—</div>
+            <div style="font-size:.7rem;color:var(--text-2);margin:6px 0 3px">InOrder</div>
+            <div class="traversal-box" id="tInOrder">—</div>
+            <div style="font-size:.7rem;color:var(--text-2);margin:6px 0 3px">PreOrder</div>
+            <div class="traversal-box" id="tPreOrder">—</div>
+            <div style="font-size:.7rem;color:var(--text-2);margin:6px 0 3px">PostOrder</div>
+            <div class="traversal-box" id="tPostOrder">—</div>
+        </div>
+
+        <!-- Información vuelo buscado -->
+        <div class="metric-card">
+            <div class="metric-title">🔍 Información de Vuelo</div>
+            <div id="flightInfo" class="flight-info-card">
+                <p style="color:var(--text-2);font-size:.78rem">Busque un vuelo para ver su información</p>
+            </div>
+        </div>
+
+    </aside>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ MODALES -->
+
+<!-- ── Modal: Insertar vuelo -->
+<div class="modal-overlay" id="modalInsert">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>➕ Insertar Nuevo Vuelo</h3>
+            <button class="modal-close" data-close="modalInsert">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="field-label" for="iCodigo">Código del vuelo *</label>
+                    <input class="input" id="iCodigo" type="text" placeholder="Ej: SB999 o 999">
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="iHora">Hora de salida</label>
+                    <input class="input" id="iHora" type="time" value="12:00">
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="iOrigen">Ciudad de origen *</label>
+                    <input class="input" id="iOrigen" type="text" placeholder="Bogotá">
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="iDestino">Ciudad de destino *</label>
+                    <input class="input" id="iDestino" type="text" placeholder="Medellín">
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="iPrecio">Precio base ($) *</label>
+                    <input class="input" id="iPrecio" type="number" min="0" placeholder="350">
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="iPasajeros">Pasajeros *</label>
+                    <input class="input" id="iPasajeros" type="number" min="1" placeholder="80">
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="iPrioridad">Prioridad (1-3)</label>
+                    <select class="select" id="iPrioridad">
+                        <option value="1">1 — Alta</option>
+                        <option value="2" selected>2 — Media</option>
+                        <option value="3">3 — Baja</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="field-label">&nbsp;</label>
+                    <div class="toggle-row" style="justify-content:flex-start;gap:16px">
+                        <label class="toggle"><input type="checkbox" id="iPromocion"><span class="toggle-slider"></span></label>
+                        <span style="font-size:.8rem">Promoción (–10%)</span>
+                        <label class="toggle" style="margin-left:8px"><input type="checkbox" id="iAlerta"><span class="toggle-slider"></span></label>
+                        <span style="font-size:.8rem">Alerta</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-close="modalInsert">Cancelar</button>
+            <button class="btn btn-primary" id="confirmInsertBtn">✈️ Insertar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal: Modificar vuelo -->
+<div class="modal-overlay" id="modalUpdate">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>✏️ Modificar Vuelo</h3>
+            <button class="modal-close" data-close="modalUpdate">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-field">
+                <label class="field-label" for="uCodigo">Código numérico del vuelo *</label>
+                <div class="input-row">
+                    <input class="input" id="uCodigo" type="number" placeholder="Ej: 400">
+                    <button class="btn btn-secondary" id="uSearchBtn" style="width:auto;white-space:nowrap">Buscar</button>
+                </div>
+            </div>
+            <div id="uFormFields" style="display:none">
+                <div class="form-grid" style="margin-top:10px">
+                    <div class="form-field">
+                        <label class="field-label" for="uOrigen">Origen</label>
+                        <input class="input" id="uOrigen" type="text">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="uDestino">Destino</label>
+                        <input class="input" id="uDestino" type="text">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="uHora">Hora salida</label>
+                        <input class="input" id="uHora" type="time">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="uPrecio">Precio base</label>
+                        <input class="input" id="uPrecio" type="number" min="0">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="uPasajeros">Pasajeros</label>
+                        <input class="input" id="uPasajeros" type="number" min="1">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="uPrioridad">Prioridad</label>
+                        <select class="select" id="uPrioridad">
+                            <option value="1">1 — Alta</option>
+                            <option value="2">2 — Media</option>
+                            <option value="3">3 — Baja</option>
+                        </select>
+                    </div>
+                    <div class="form-field full">
+                        <div class="toggle-row" style="justify-content:flex-start;gap:16px">
+                            <label class="toggle"><input type="checkbox" id="uPromocion"><span class="toggle-slider"></span></label>
+                            <span style="font-size:.8rem">Promoción (–10%)</span>
+                            <label class="toggle" style="margin-left:8px"><input type="checkbox" id="uAlerta"><span class="toggle-slider"></span></label>
+                            <span style="font-size:.8rem">Alerta</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-close="modalUpdate">Cancelar</button>
+            <button class="btn btn-primary" id="confirmUpdateBtn" disabled>💾 Guardar Cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal: Comparativa AVL vs BST (post-inserción) -->
+<div class="modal-overlay" id="modalCompare">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3>🌳 Comparativa AVL vs BST — Carga desde Inserción</h3>
+            <button class="modal-close" data-close="modalCompare">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="compare-grid">
+                <div class="compare-tree-box">
+                    <div class="compare-tree-title" style="color:var(--avl)">🔵 Árbol AVL</div>
+                    <canvas id="compareAVLCanvas" height="300"></canvas>
+                    <div class="compare-props" id="compareAvlProps"></div>
+                </div>
+                <div class="compare-tree-box">
+                    <div class="compare-tree-title" style="color:var(--bst)">🟢 Árbol BST</div>
+                    <canvas id="compareBSTCanvas" height="300"></canvas>
+                    <div class="compare-props" id="compareBstProps"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" data-close="modalCompare">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal: Auditoría AVL -->
+<div class="modal-overlay" id="modalAudit">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>🔎 Reporte de Auditoría AVL</h3>
+            <button class="modal-close" data-close="modalAudit">✕</button>
+        </div>
+        <div class="modal-body" id="auditReport"></div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" data-close="modalAudit">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal: Gestión de versiones -->
+<div class="modal-overlay" id="modalVersions">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>💾 Versiones Guardadas</h3>
+            <button class="modal-close" data-close="modalVersions">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="version-list" id="versionList"></div>
+            <p id="noVersionsMsg" style="color:var(--text-2);font-size:.82rem;text-align:center">No hay versiones guardadas aún</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="exportVersionsBtn2">⬇️ Exportar todas</button>
+            <button class="btn btn-ghost" data-close="modalVersions">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Modal: Cola de inserciones -->
+<div class="modal-overlay" id="modalQueue">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>🗂️ Cola de Inserciones Pendientes</h3>
+            <button class="modal-close" data-close="modalQueue">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="queue-list" id="queueList"></div>
+            <p id="noQueueMsg" style="color:var(--text-2);font-size:.82rem;text-align:center;margin-top:8px">La cola está vacía</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" id="clearQueueBtn">🗑️ Limpiar Cola</button>
+            <button class="btn btn-primary" data-close="modalQueue">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Toast container -->
+<div id="toastContainer"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SCRIPTS -->
+<!-- Orden de carga: dependencias primero, app.js al final -->
+<script src="js/node.js"></script>
+<script src="js/stack.js"></script>
+<script src="js/queue.js"></script>
+<script src="js/bst.js"></script>
+<script src="js/avl.js"></script>
+<script src="js/metrics.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/versioning.js"></script>
+<script src="js/app.js"></script>
 </body>
-
 </html>

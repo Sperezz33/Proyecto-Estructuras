@@ -1,36 +1,36 @@
 /**
- * Clase Node - Representa un nodo en los árboles AVL y BST
- * Contiene datos de vuelo y propiedades necesarias para el balanceo AVL
- * Estructura fundamental para la implementación de árboles binarios de búsqueda
+ * Clase Node — Representa un nodo en los árboles AVL y BST
+ * Contiene datos completos de vuelo y propiedades de balanceo AVL
  */
-
 class Node {
     /**
-     * Constructor de la clase Node
-     * Inicializa un nodo con datos de vuelo y propiedades de árbol
-     * @param {Object} data - Objeto que contiene información del vuelo
-     * @param {string|number} data.codigo - Código identificador del vuelo
-     * @param {string} data.origen - Ciudad/aeropuerto de origen
-     * @param {string} data.destino - Ciudad/aeropuerto de destino
-     * @param {number} data.precioBase - Precio base del vuelo
-     * @param {number} data.pasajeros - Número de pasajeros
+     * @param {Object} data - Objeto con información del vuelo
      */
     constructor(data) {
-        // Datos del vuelo almacenados en el nodo
-        this.data = data; // objeto vuelo con todas las propiedades
+        this.data = {
+            codigo:        data.codigo        ?? null,
+            codigoNumerico:data.codigoNumerico?? null,
+            origen:        data.origen        ?? "",
+            destino:       data.destino       ?? "",
+            horaSalida:    data.horaSalida    ?? "",
+            precioBase:    data.precioBase    ?? 0,
+            precioFinal:   data.precioFinal   ?? data.precioBase ?? 0,
+            pasajeros:     data.pasajeros     ?? 0,
+            prioridad:     data.prioridad     ?? 1,
+            promocion:     data.promocion     ?? false,
+            alerta:        data.alerta        ?? false,
+            profit:        data.profit        ?? 0,
+            penalizacion:  data.penalizacion  ?? false
+        };
 
-        // Punteros a nodos hijos (estructura de árbol binario)
-        this.left = null; // Subárbol izquierdo (valores menores)
-        this.right = null; // Subárbol derecho (valores mayores)
-
-        // Propiedad de altura para balanceo AVL
-        this.height = 1; // Altura del subárbol rooted en este nodo
-
-        // Propiedades específicas del proyecto AVL
-        this.factor = 0; // Factor de balance (altura izquierda - altura derecha)
-        this.critico = false; // Flag para marcar nodos críticos en análisis
-        this.depth = 0; // profundidad del nodo en el árbol
+        // Estructura del árbol
+        this.left   = null;
+        this.right  = null;
+        this.height = 1;
+        this.factor = 0;
+        this.critico= false;
+        this.depth  = 0;
     }
 }
 
-export default Node;
+// Node es global

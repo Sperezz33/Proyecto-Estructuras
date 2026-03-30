@@ -1,266 +1,188 @@
-// metrics.js
-// Calcula métricas de AVL y BST
+// metrics.js — Cálculo de métricas para árboles AVL y BST (sin ES modules)
 
-export function getHeight(node) {
+// ─── Altura y nodos ─────────────────────────────────────────────────────────
+
+function getHeight(node) {
     if (!node) return 0;
     return 1 + Math.max(getHeight(node.left), getHeight(node.right));
 }
 
-export function countNodes(node) {
+function countNodes(node) {
     if (!node) return 0;
     return 1 + countNodes(node.left) + countNodes(node.right);
 }
 
-export function countLeaves(node) {
+function countLeaves(node) {
     if (!node) return 0;
     if (!node.left && !node.right) return 1;
     return countLeaves(node.left) + countLeaves(node.right);
 }
 
-export function getMaxDepth(node) {
-    if (!node) return 0;
-    return 1 + Math.max(getMaxDepth(node.left), getMaxDepth(node.right));
-}
+// ─── Recorridos ──────────────────────────────────────────────────────────────
 
-export function getTreeDepth(node) {
-    if (!node) return -1;
-    return 1 + Math.max(getTreeDepth(node.left), getTreeDepth(node.right));
-}
-
-// BFS (recorrido por niveles)
-export function BFS(root) {
+function BFS(root) {
     if (!root) return [];
-
-    let queue = [];
-    let result = [];
-
-    queue.push(root);
-
-    while (queue.length > 0) {
-        let node = queue.shift();
-        result.push(node.data.codigo);
-
-        if (node.left) queue.push(node.left);
-        if (node.right) queue.push(node.right);
+    const queue = [root], result = [];
+    while (queue.length) {
+        const n = queue.shift();
+        result.push(n.data.codigo);
+        if (n.left)  queue.push(n.left);
+        if (n.right) queue.push(n.right);
     }
-
     return result;
 }
 
-// DFS InOrder
-export function DFS_InOrder(node, result = []) {
+function DFS_InOrder(node, result = []) {
     if (!node) return result;
-
-    DFS_InOrder(node.left, result);
+    DFS_InOrder(node.left,  result);
     result.push(node.data.codigo);
     DFS_InOrder(node.right, result);
-
     return result;
 }
 
-// DFS PreOrder
-export function DFS_PreOrder(node, result = []) {
+function DFS_PreOrder(node, result = []) {
     if (!node) return result;
-
     result.push(node.data.codigo);
-    DFS_PreOrder(node.left, result);
+    DFS_PreOrder(node.left,  result);
     DFS_PreOrder(node.right, result);
-
     return result;
 }
 
-// DFS PostOrder
-export function DFS_PostOrder(node, result = []) {
+function DFS_PostOrder(node, result = []) {
     if (!node) return result;
-
-    DFS_PostOrder(node.left, result);
+    DFS_PostOrder(node.left,  result);
     DFS_PostOrder(node.right, result);
     result.push(node.data.codigo);
-
     return result;
 }
 
-// Contar rotaciones
-export function countRotations(avl) {
-    let conteo = { LL: 0, RR: 0, LR: 0, RL: 0 };
+// ─── Rotaciones ──────────────────────────────────────────────────────────────
 
-    avl.rotations.forEach(r => {
-        if (conteo[r] !== undefined) {
-            conteo[r]++;
-        }
-    });
-
-    return conteo;
+function countRotations(avl) {
+    const c = { LL: 0, RR: 0, LR: 0, RL: 0 };
+    avl.rotations.forEach(r => { if (c[r] !== undefined) c[r]++; });
+    return c;
 }
 
-// Nodos críticos (|factor| > 1)
-export function findCriticalNodes(node, result = []) {
+// ─── Nodos críticos ───────────────────────────────────────────────────────────
+
+function findCriticalNodes(node, result = []) {
     if (!node) return result;
-
-    if (Math.abs(node.factor) > 1) {
-        result.push(node.data.codigo);
-    }
-
-    findCriticalNodes(node.left, result);
+    if (Math.abs(node.factor ?? 0) > 1) result.push(node.data.codigo);
+    findCriticalNodes(node.left,  result);
     findCriticalNodes(node.right, result);
-
     return result;
 }
 
-export function auditAVL(node, issues = []) {
+// ─── Auditoría AVL ───────────────────────────────────────────────────────────
+
+function auditAVL(node, issues = []) {
     if (!node) return issues;
 
-    let leftHeight = node.left ? node.left.height : 0;
-    let rightHeight = node.right ? node.right.height : 0;
-    let balance = leftHeight - rightHeight;
+    const lh  = node.left  ? node.left.height  : 0;
+    const rh  = node.right ? node.right.height : 0;
+    const bal = lh - rh;
 
-    // Verificar balance
-    if (balance < -1 || balance > 1) {
-        issues.push(`Nodo ${node.data.codigoNumerico} desbalanceado (balance = ${balance})`);
+    if (bal < -1 || bal > 1) {
+        issues.push({
+            codigo:  node.data.codigo,
+            tipo:    "DESBALANCE",
+            mensaje: `Factor de balance = ${bal} (debe ser -1, 0 o 1)`,
+            valor:   bal
+        });
     }
 
-    // Verificar altura correcta
-    let expectedHeight = 1 + Math.max(leftHeight, rightHeight);
-    if (node.height !== expectedHeight) {
-        issues.push(`Nodo ${node.data.codigoNumerico} altura incorrecta (altura = ${node.height}, debería ser = ${expectedHeight})`);
+    const expectedH = 1 + Math.max(lh, rh);
+    if (node.height !== expectedH) {
+        issues.push({
+            codigo:  node.data.codigo,
+            tipo:    "ALTURA",
+            mensaje: `Altura = ${node.height} (debería ser ${expectedH})`,
+            valor:   node.height
+        });
     }
 
-    auditAVL(node.left, issues);
+    auditAVL(node.left,  issues);
     auditAVL(node.right, issues);
-
     return issues;
 }
 
-// =============================
-// RENTABILIDAD
-// =============================
+// ─── Rentabilidad ─────────────────────────────────────────────────────────────
 
-export function getMaxProfit(node) {
+/**
+ * rentabilidad = pasajeros × precioFinal
+ *              - descuento promoción (10% si promocion=true)
+ *              + penalización crítica (25% precioBase×pasajeros si critico=true)
+ */
+function calcRentabilidad(node) {
+    if (!node) return 0;
+    const d          = node.data;
+    const ingresos   = (d.pasajeros ?? 0) * (d.precioFinal ?? d.precioBase ?? 0);
+    const descuento  = d.promocion  ? ingresos * 0.10 : 0;
+    const penaliz    = node.critico ? (d.precioBase ?? 0) * (d.pasajeros ?? 0) * 0.25 : 0;
+    return ingresos - descuento + penaliz;
+}
+
+function getMaxProfit(node) {
     if (!node) return null;
-
-    let max = node;
-
-    const left = getMaxProfit(node.left);
-    const right = getMaxProfit(node.right);
-
-    if (left && left.data.profit > max.data.profit) max = left;
-    if (right && right.data.profit > max.data.profit) max = right;
-
+    let max  = node;
+    const l  = getMaxProfit(node.left);
+    const r  = getMaxProfit(node.right);
+    if (l && calcRentabilidad(l) > calcRentabilidad(max)) max = l;
+    if (r && calcRentabilidad(r) > calcRentabilidad(max)) max = r;
     return max;
 }
 
-export function getMinProfit(node, depth = 0, result = []) {
-    if (!node) return null;
-
-    result.push({
-        node: node,
-        profit: node.data.profit,
-        depth: depth,
-        codigo: node.data.codigoNumerico
-    });
-
-    getMinProfit(node.left, depth + 1, result);
-    getMinProfit(node.right, depth + 1, result);
-
-    result.sort((a, b) => {
-        if (a.profit !== b.profit) return a.profit - b.profit;
+function getMinProfit(root) {
+    if (!root) return null;
+    const all = [];
+    function collect(n, depth) {
+        if (!n) return;
+        all.push({ node: n, rent: calcRentabilidad(n), depth, codigo: n.data.codigoNumerico });
+        collect(n.left,  depth + 1);
+        collect(n.right, depth + 1);
+    }
+    collect(root, 0);
+    all.sort((a, b) => {
+        if (a.rent  !== b.rent)  return a.rent  - b.rent;
         if (a.depth !== b.depth) return b.depth - a.depth;
         return b.codigo - a.codigo;
     });
-
-    return result[0].node;
+    return all[0]?.node ?? null;
 }
 
-export function getAverageProfit(node) {
-    let sum = 0;
-    let count = 0;
-
-    function traverse(n) {
+function getAverageProfit(node) {
+    let sum = 0, count = 0;
+    function t(n) {
         if (!n) return;
-        sum += n.data.profit;
+        sum += calcRentabilidad(n);
         count++;
-        traverse(n.left);
-        traverse(n.right);
+        t(n.left); t(n.right);
     }
-
-    traverse(node);
-
+    t(node);
     return count === 0 ? 0 : sum / count;
 }
 
-export function getTopN(node, n = 5) {
-    let arr = [];
-
-    function traverse(nodo) {
-        if (!nodo) return;
-        arr.push(nodo.data);
-        traverse(nodo.left);
-        traverse(nodo.right);
+function getTopN(node, n = 5) {
+    const arr = [];
+    function t(nd) {
+        if (!nd) return;
+        arr.push({ ...nd.data, rentabilidad: calcRentabilidad(nd) });
+        t(nd.left); t(nd.right);
     }
-
-    traverse(node);
-
-    arr.sort((a, b) => b.profit - a.profit);
-
+    t(node);
+    arr.sort((a, b) => b.rentabilidad - a.rentabilidad);
     return arr.slice(0, n);
 }
 
-export function getAverageBalanceFactor(node) {
-    let sum = 0;
-    let count = 0;
-
-    function traverse(n) {
-        if (!n) return;
-
-        let left = n.left ? n.left.height : 0;
-        let right = n.right ? n.right.height : 0;
-        let balance = left - right;
-
-        sum += Math.abs(balance);
-        count++;
-
-        traverse(n.left);
-        traverse(n.right);
-    }
-
-    traverse(node);
-
-    return count === 0 ? 0 : (sum / count);
-}
-
-export function getTotalProfit(node) {
+function getTotalProfit(node) {
     if (!node) return 0;
-
-    return node.data.profit +
-        getTotalProfit(node.left) +
-        getTotalProfit(node.right);
+    return calcRentabilidad(node) + getTotalProfit(node.left) + getTotalProfit(node.right);
 }
 
-export function countCriticalNodes(node) {
+function countCriticalNodes(node) {
     if (!node) return 0;
-
-    let count = node.critico ? 1 : 0;
-
-    return count +
-        countCriticalNodes(node.left) +
-        countCriticalNodes(node.right);
+    return (node.critico ? 1 : 0) + countCriticalNodes(node.left) + countCriticalNodes(node.right);
 }
 
-export function getAverageDepth(node) {
-    let totalDepth = 0;
-    let count = 0;
-
-    function traverse(n, depth) {
-        if (!n) return;
-
-        totalDepth += depth;
-        count++;
-
-        traverse(n.left, depth + 1);
-        traverse(n.right, depth + 1);
-    }
-
-    traverse(node, 0);
-
-    return count === 0 ? 0 : totalDepth / count;
-}
+// Todas las funciones son globales (sin export)

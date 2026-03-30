@@ -1,295 +1,225 @@
 /**
- * Clase Renderer - Maneja la visualización de árboles AVL y BST en canvas HTML5
- * Proporciona renderizado estático y animado con colores diferenciados
- * Incluye escalado dinámico y manejo de eventos de redimensionamiento
+ * Renderer — Dibuja los árboles AVL y BST en un canvas HTML5
+ * Soporta árboles grandes con escalado dinámico y colores según estado del nodo
  */
 
 class Renderer {
-    /**
-     * Constructor del Renderer
-     * Inicializa canvas, contexto y configura eventos de redimensionamiento
-     * @param {string} canvasId - ID del elemento canvas en el DOM
-     */
     constructor(canvasId) {
-        // Referencias a las raíces de los árboles para renderizado
-        this.avlRoot = null;
-        this.bstRoot = null;
+        this.canvas   = document.getElementById(canvasId);
+        this.ctx      = this.canvas.getContext("2d");
+        this.avlRoot  = null;
+        this.bstRoot  = null;
 
-        // Obtener y configurar el canvas
-        this.canvas = document.getElementById(canvasId);
-        this.ctx = this.canvas.getContext("2d");
+        // Parámetros visuales
+        this.nodeRadius  = 22;
+        this.levelHeight = 80;
+        this.hPad        = 32;
 
-        // Ajustar tamaño inicial del canvas
-        this.resizeCanvas();
-
-        // Evento para redimensionar canvas cuando cambia el tamaño de ventana
+        this._resizeCanvas();
         window.addEventListener("resize", () => {
-            this.resizeCanvas();
-
-            // Re-renderizar si hay árboles cargados
-            if (this.avlRoot || this.bstRoot) {
-                this.render(this.avlRoot, this.bstRoot);
-            }
+            this._resizeCanvas();
+            if (this.avlRoot || this.bstRoot) this.render(this.avlRoot, this.bstRoot);
         });
-
-        // Configuración visual de nodos
-        this.nodeRadius = 20; // Radio de los círculos de nodos
-        this.levelHeight = 130; // Altura vertical entre niveles del árbol
     }
 
-    /**
-     * Limpia completamente el canvas
-     */
-    clear() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // ─── Tamaño del canvas ────────────────────────────────────────────────────
+
+    _resizeCanvas() {
+        this.canvas.width = this.canvas.parentElement?.clientWidth || 800;
     }
 
-    /**
-     * Calcula la altura máxima de un árbol (número de niveles)
-     * @param {Object} node - Nodo raíz del árbol
-     * @returns {number} Altura del árbol
-     */
-    getTreeHeight(node) {
+    // ─── Utilidades de árbol ──────────────────────────────────────────────────
+
+    _getHeight(node) {
         if (!node) return 0;
-        return 1 + Math.max(
-            this.getTreeHeight(node.left),
-            this.getTreeHeight(node.right)
-        );
+        return 1 + Math.max(this._getHeight(node.left), this._getHeight(node.right));
     }
 
-    /**
-     * Dibuja un nodo individual en el canvas con colores según su estado
-     * @param {number} x - Coordenada X del centro del nodo
-     * @param {number} y - Coordenada Y del centro del nodo
-     * @param {Object} node - Nodo a dibujar
-     * @param {string} type - Tipo de árbol ("AVL" o "BST")
-     */
-    drawNode(x, y, node, type = "AVL") {
+    _countNodes(node) {
+        if (!node) return 0;
+        return 1 + this._countNodes(node.left) + this._countNodes(node.right);
+    }
+
+    // ─── Color de nodo según estado ───────────────────────────────────────────
+
+    _nodeColor(node, type) {
+        if (node.critico)                    return { fill: "#f59e0b", glow: "rgba(245,158,11,.5)"  }; // ámbar = crítico
+        if (Math.abs(node.factor ?? 0) > 1)  return { fill: "#ef4444", glow: "rgba(239,68,68,.5)"   }; // rojo  = desbalance
+        if (node.data?.alerta)               return { fill: "#a855f7", glow: "rgba(168,85,247,.5)"  }; // morado= alerta
+        if (type === "AVL")                  return { fill: "#4f8ef7", glow: "rgba(79,142,247,.4)"  }; // azul  = AVL normal
+        return                                      { fill: "#22d3a0", glow: "rgba(34,211,160,.4)"  }; // verde = BST
+    }
+
+    // ─── Dibujo de un nodo ────────────────────────────────────────────────────
+
+    _drawNode(x, y, node, type) {
         const ctx = this.ctx;
+        const { fill, glow } = this._nodeColor(node, type);
+        const r = this.nodeRadius;
 
-        // Color según tipo de nodo
-        let color;
+        // Sombra / glow
+        ctx.shadowColor = glow;
+        ctx.shadowBlur  = 18;
 
-        if (node.critico) {
-            color = "#f59e0b"; // amarillo = crítico (penalización económica)
-        } else if (Math.abs(node.factor || 0) > 1) {
-            color = "#ef4444"; // rojo = desbalance AVL
-        } else if (type === "AVL") {
-            color = "#3b82f6"; // azul = AVL
-        } else {
-            color = "#22c55e"; // verde = BST
-        }
-
-        // Efecto de sombra para resaltar el nodo
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 15;
-
-        // Dibujar círculo del nodo
+        // Círculo principal
         ctx.beginPath();
-        ctx.arc(x, y, this.nodeRadius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = fill;
         ctx.fill();
-        ctx.strokeStyle = "#fff"; // Borde blanco
+
+        // Borde
+        ctx.shadowBlur   = 0;
+        ctx.strokeStyle  = "rgba(255,255,255,.25)";
+        ctx.lineWidth    = 1.5;
         ctx.stroke();
 
-        // Remover sombra para el texto
+        // ── Texto ──
+        ctx.fillStyle    = "#ffffff";
+        ctx.textAlign    = "center";
+        ctx.textBaseline = "middle";
+
+        // Código (negrita, encima del centro)
+        ctx.font = `bold ${Math.min(11, r * 0.5)}px "JetBrains Mono",monospace`;
+        ctx.fillText(String(node.data.codigo).substring(0, 6), x, y - 9);
+
+        // Altura y factor
+        ctx.font        = `${Math.min(9, r * 0.4)}px "JetBrains Mono",monospace`;
+        ctx.fillStyle   = "rgba(255,255,255,.75)";
+        ctx.fillText(`h:${node.height} f:${node.factor ?? 0}`, x, y + 2);
+
+        // Profit
+        const profit = node.data.profit ?? 0;
+        ctx.fillText(`$${Math.round(profit / 1000)}k`, x, y + 12);
+
         ctx.shadowBlur = 0;
-
-        // Dibujar texto del nodo (código, altura, factor)
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 10px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(node.data.codigo, x, y - 10);
-
-        ctx.font = "10px Arial";
-        ctx.fillText(`h:${node.height}`, x, y + 0);
-        ctx.fillText(`f:${node.factor ?? 0}`, x, y + 10);
-        ctx.fillText(`d:${node.depth}`, x, y + 20);
-        ctx.fillText(`$${Math.round(node.data.profit)}`, x, y + 30);
     }
 
-    /**
-     * Dibuja una línea de conexión entre dos puntos
-     * @param {number} x1 - Coordenada X inicial
-     * @param {number} y1 - Coordenada Y inicial
-     * @param {number} x2 - Coordenada X final
-     * @param {number} y2 - Coordenada Y final
-     */
-    drawLine(x1, y1, x2, y2) {
-        const ctx = this.ctx;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.strokeStyle = "#94a3b8"; // Color gris para las líneas
-        ctx.stroke();
-    }
+    // ─── Dibujo recursivo del árbol ───────────────────────────────────────────
 
     /**
-     * Dibuja un árbol completo de forma recursiva
-     * @param {Object} node - Nodo raíz del subárbol a dibujar
-     * @param {number} x - Coordenada X del nodo actual
-     * @param {number} y - Coordenada Y del nodo actual
+     * @param {Object} node   - Nodo actual
+     * @param {number} x      - X del nodo
+     * @param {number} y      - Y del nodo
      * @param {number} offset - Desplazamiento horizontal para hijos
-     * @param {string} type - Tipo de árbol ("AVL" o "BST")
+     * @param {string} type   - "AVL" | "BST"
      */
-    drawTree(node, x, y, offset, type) {
+    _drawTree(node, x, y, offset, type) {
         if (!node) return;
 
-        const ctx = this.ctx;
+        const ctx        = this.ctx;
+        const nextOffset = Math.max(this.nodeRadius * 2.2, offset * 0.62);
+        const childY     = y + this.levelHeight;
 
-        // Calcular offset reducido para el siguiente nivel
-        const nextOffset = offset * 0.7;
-
-        // Dibujar línea y subárbol izquierdo
+        // Línea al hijo izquierdo
         if (node.left) {
             ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x - offset, y + this.levelHeight);
-            ctx.strokeStyle = "#aaa";
+            ctx.moveTo(x, y + this.nodeRadius);
+            ctx.lineTo(x - offset, childY - this.nodeRadius);
+            ctx.strokeStyle = "rgba(148,163,184,.35)";
+            ctx.lineWidth   = 1.2;
             ctx.stroke();
-
-            this.drawTree(node.left, x - offset, y + this.levelHeight, nextOffset, type);
+            this._drawTree(node.left, x - offset, childY, nextOffset, type);
         }
 
-        // Dibujar línea y subárbol derecho
+        // Línea al hijo derecho
         if (node.right) {
             ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + offset, y + this.levelHeight);
-            ctx.strokeStyle = "#aaa";
+            ctx.moveTo(x, y + this.nodeRadius);
+            ctx.lineTo(x + offset, childY - this.nodeRadius);
+            ctx.strokeStyle = "rgba(148,163,184,.35)";
+            ctx.lineWidth   = 1.2;
             ctx.stroke();
-
-            this.drawTree(node.right, x + offset, y + this.levelHeight, nextOffset, type);
+            this._drawTree(node.right, x + offset, childY, nextOffset, type);
         }
 
-        // Dibujar el nodo actual
-        this.drawNode(x, y, node, type);
+        // Dibujar nodo encima de las líneas
+        this._drawNode(x, y, node, type);
     }
 
-    /**
-     * Renderiza ambos árboles (AVL y BST) lado a lado en el canvas
-     * Ajusta dinámicamente la altura del canvas según el árbol más alto
-     * @param {Object} avlRoot - Raíz del árbol AVL
-     * @param {Object} bstRoot - Raíz del árbol BST
-     */
+    // ─── Calcular ancho necesario para el árbol ───────────────────────────────
+
+    _calcRequiredWidth(h) {
+        return Math.max(300, Math.pow(2, h) * (this.nodeRadius * 2 + 6));
+    }
+
+    // ─── Render principal ─────────────────────────────────────────────────────
+
     render(avlRoot, bstRoot) {
-        // Calcular altura máxima entre ambos árboles
-        const maxHeight = Math.max(
-            this.getTreeHeight(avlRoot),
-            this.getTreeHeight(bstRoot)
-        );
-
-        // 🔥 Ajustar altura dinámica del canvas
-        this.canvas.height = Math.max(600, maxHeight * 140);
-        this.clear();
-
-        const width = this.canvas.width;
-
-        // Dibujar títulos de los árboles
-        this.ctx.fillStyle = "#3b82f6"; // Azul para AVL
-        this.ctx.font = "bold 18px Arial";
-        this.ctx.fillText("AVL", width / 4 - 20, 30);
-
-        this.ctx.fillStyle = "#22c55e"; // Verde para BST
-        this.ctx.fillText("BST", (width * 3) / 4 - 20, 30);
-
-        // Renderizar árbol AVL (lado izquierdo)
-        const avlHeight = this.getTreeHeight(avlRoot);
-        const avlOffset = (width / 2.5) / (avlHeight + 1);
-        this.drawTree(avlRoot, width / 4, 50, avlOffset, "AVL");
-
-        // Renderizar árbol BST (lado derecho)
-        const bstHeight = this.getTreeHeight(bstRoot);
-        const bstOffset = (width / 2.5) / (bstHeight + 1);
-        this.drawTree(bstRoot, (width * 3) / 4, 50, bstOffset, "BST");
-        // Leyenda
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "12px Arial";
-
-        this.ctx.fillText("Azul: AVL", 20, this.canvas.height - 80);
-        this.ctx.fillText("Verde: BST", 20, this.canvas.height - 65);
-        this.ctx.fillText("Rojo: Desbalance", 20, this.canvas.height - 50);
-        this.ctx.fillText("Amarillo: Nodo crítico", 20, this.canvas.height - 35);
-    }
-
-    /**
-     * Renderiza los árboles con animación de escalado
-     * Crea un efecto de "aparición" gradual usando transformación de escala
-     * @param {Object} avlRoot - Raíz del árbol AVL
-     * @param {Object} bstRoot - Raíz del árbol BST
-     */
-    animate(avlRoot, bstRoot) {
-        // Calcular altura máxima para ajustar canvas
-        const maxHeight = Math.max(
-            this.getTreeHeight(avlRoot),
-            this.getTreeHeight(bstRoot)
-        );
-
-        this.canvas.height = Math.max(600, maxHeight * 140);
-
-        // Guardar referencias para redimensionamiento
         this.avlRoot = avlRoot;
         this.bstRoot = bstRoot;
 
-        // Renderizar versión final primero (para referencia)
-        this.render(avlRoot, bstRoot);
+        const avlH = this._getHeight(avlRoot);
+        const bstH = this._getHeight(bstRoot);
+        const maxH = Math.max(avlH, bstH, 1);
 
-        // Iniciar animación con escala 0
-        let scale = 0;
+        // Ajustar alto del canvas según profundidad
+        const neededH = Math.max(500, maxH * (this.levelHeight + 10) + 80);
+        this.canvas.height = neededH;
 
-        const width = this.canvas.width;
+        const ctx   = this.ctx;
+        const W     = this.canvas.width;
 
-        /**
-         * Función recursiva para frames de animación
-         * Usa requestAnimationFrame para suavidad
-         */
-        const animateFrame = () => {
-            this.clear();
+        // Fondo degradado
+        const bg = ctx.createLinearGradient(0, 0, 0, neededH);
+        bg.addColorStop(0, "#141d35");
+        bg.addColorStop(1, "#0a0e1a");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, neededH);
 
-            // Aplicar transformación de escala desde el centro
-            this.ctx.save();
-            this.ctx.translate(width / 2, 0);
-            this.ctx.scale(scale, scale);
-            this.ctx.translate(-width / 2, 0);
+        // Separador central
+        ctx.beginPath();
+        ctx.moveTo(W / 2, 40);
+        ctx.lineTo(W / 2, neededH - 20);
+        ctx.strokeStyle = "rgba(255,255,255,.05)";
+        ctx.lineWidth   = 1;
+        ctx.stroke();
 
-            // Calcular offsets para el frame actual
-            const avlHeight = this.getTreeHeight(avlRoot);
-            const bstHeight = this.getTreeHeight(bstRoot);
+        // Etiquetas de título
+        this._drawTitle("AVL", W / 4,     20, "#4f8ef7");
+        this._drawTitle("BST", W * 3 / 4, 20, "#22d3a0");
 
-            const avlOffset = (width / 2.5) / (avlHeight + 1);
-            const bstOffset = (width / 2.5) / (bstHeight + 1);
+        // Calcular offsets basados en el ancho disponible
+        const halfW   = W / 2 - this.hPad;
+        const avlOff  = halfW / (avlH + 1);
+        const bstOff  = halfW / (bstH + 1);
 
-            // Dibujar árboles escalados
-            this.drawTree(avlRoot, width / 4, 80, avlOffset, "AVL");
-            this.drawTree(bstRoot, (width * 3) / 4, 80, bstOffset, "BST");
+        // Dibujar árboles
+        this._drawTree(avlRoot, W / 4,     60, avlOff, "AVL");
+        this._drawTree(bstRoot, W * 3 / 4, 60, bstOff, "BST");
+    }
 
-            this.ctx.restore();
+    _drawTitle(text, x, y, color) {
+        const ctx = this.ctx;
+        ctx.font         = "bold 14px Inter,sans-serif";
+        ctx.fillStyle    = color;
+        ctx.textAlign    = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor  = color;
+        ctx.shadowBlur   = 12;
+        ctx.fillText(text, x, y);
+        ctx.shadowBlur   = 0;
+    }
 
-            // Incrementar escala para siguiente frame
-            scale += 0.05;
+    // ─── Animate (con efecto fade-in alpha) ───────────────────────────────────
 
-            // Continuar animación hasta escala completa
-            if (scale < 1) {
-                requestAnimationFrame(animateFrame);
-            } else {
-                // Renderizar versión final sin transformación
-                this.render(avlRoot, bstRoot);
+    animate(avlRoot, bstRoot) {
+        this.avlRoot = avlRoot;
+        this.bstRoot = bstRoot;
+        this._resizeCanvas();
+
+        let alpha = 0;
+        const draw = () => {
+            this.render(avlRoot, bstRoot);
+            // Overlay oscuro que desvanece
+            if (alpha < 1) {
+                this.ctx.fillStyle = `rgba(10,14,26,${1 - alpha})`;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                alpha += 0.12;
+                requestAnimationFrame(draw);
             }
         };
-
-        // Iniciar la animación
-        animateFrame();
+        requestAnimationFrame(draw);
     }
-
-    /**
-     * Ajusta el ancho del canvas al ancho de su contenedor
-     * Se llama en constructor y en eventos de redimensionamiento
-     */
-    resizeCanvas() {
-        this.canvas.width = this.canvas.clientWidth;
-    }
-
 }
 
-export default Renderer;
-
+// Renderer disponible globalmente

@@ -1,192 +1,76 @@
 /**
- * Implementación de Árbol AVL (Árbol Binario de Búsqueda Autoequilibrado)
- * Mantiene el balance automático mediante rotaciones para garantizar O(log n) en operaciones
+ * Implementación del Árbol AVL con balanceo automático
+ * Registra todas las rotaciones por tipo: LL, RR, LR, RL
+ * Soporta modo estrés (sin balanceo automático)
  */
+// Node disponible globalmente
 
-import Node from "./node.js";
-
-/**
- * Clase que representa un Árbol AVL
- */
 class AVL {
-    /**
-     * Constructor de la clase AVL
-     */
     constructor() {
-        this.root = null; // Raíz del árbol
-        this.rotations = []; // Array para registrar las rotaciones realizadas
-        this.stressMode = false; // Flag para modo de estrés (sin rotaciones)
+        this.root             = null;
+        this.rotations        = [];      // historial de rotaciones ["LL","RR",...]
+        this.stressMode       = false;
         this.massiveDeletions = 0;
+        this.rotationsBeforeRebalance = 0; // para medir costo del rebalanceo diferido
     }
 
-    /**
-     * Obtiene la altura de un nodo
-     * @param {Node} node - Nodo del árbol
-     * @returns {number} Altura del nodo o 0 si es null
-     */
-    getHeight(node) {
-        return node ? node.height : 0;
-    }
+    // ─── Utilidades de altura y balance ───────────────────────────────────────
 
-    /**
-     * Calcula el factor de balance de un nodo (altura izquierda - altura derecha)
-     * @param {Node} node - Nodo del árbol
-     * @returns {number} Factor de balance
-     */
+    getHeight(node) { return node ? node.height : 0; }
+
     getBalance(node) {
         return node ? this.getHeight(node.left) - this.getHeight(node.right) : 0;
     }
 
-    /**
-     * Actualiza la altura y el factor de balance de un nodo
-     * @param {Node} node - Nodo a actualizar
-     */
     update(node) {
         node.height = 1 + Math.max(this.getHeight(node.left), this.getHeight(node.right));
         node.factor = this.getBalance(node);
     }
 
-    /**
-     * Realiza una rotación derecha (Right Rotation - RR)
-     * Corrige desbalance LL
-     * @param {Node} y - Nodo desbalanceado
-     * @returns {Node} Nueva raíz de la subestructura
-     */
+    // ─── Rotaciones ───────────────────────────────────────────────────────────
+
     rotateRight(y) {
-        let x = y.left;
+        let x  = y.left;
         let T2 = x.right;
-
         x.right = y;
-        y.left = T2;
-
+        y.left  = T2;
         this.update(y);
         this.update(x);
-
         return x;
     }
 
-    /**
-     * Realiza una rotación izquierda (Left Rotation - LL)
-     * Corrige desbalance RR
-     * @param {Node} x - Nodo desbalanceado
-     * @returns {Node} Nueva raíz de la subestructura
-     */
     rotateLeft(x) {
-        let y = x.right;
+        let y  = x.right;
         let T2 = y.left;
-
-        y.left = x;
+        y.left  = x;
         x.right = T2;
-
         this.update(x);
         this.update(y);
-
         return y;
     }
 
-    /**
-     * Inserta un valor en el árbol AVL de forma recursiva
-     * Aplica rotaciones automáticamente para mantener el balance
-     * @param {Node} node - Nodo actual en la recursión
-     * @param {Object} data - Datos del vuelo a insertar
-     * @returns {Node} Nodo resultante después de la inserción
-     */
-    insert(node, data) {
-        if (!node) {
-            // Inicializar precios y profit
-            data.precioFinal = data.precioBase;
-            data.profit = data.precioFinal * data.pasajeros;
-            return new Node(data);
-        }
+    // ─── Rebalanceo de un nodo ─────────────────────────────────────────────────
 
-        if (data.codigoNumerico < node.data.codigoNumerico)
-            node.left = this.insert(node.left, data);
-        else if (data.codigoNumerico > node.data.codigoNumerico)
-            node.right = this.insert(node.right, data);
-        else
-            return node;
+    rebalance(node) {
+        const balance = this.getBalance(node);
 
-        this.update(node);
-
-        // Si está en modo estrés → NO balancear
-        if (this.stressMode) {
-            return node;
-        }
-
-        // Si NO está en estrés → balancear
-        return this.rebalance(node);
-    }
-
-    /**
-     * Método público para insertar un valor en el árbol AVL
-     * @param {Object} data - Datos del vuelo a insertar
-     */
-    insertValue(data) {
-        this.root = this.insert(this.root, data);
-    }
-
-    // Buscar el nodo con valor mínimo
-    minValueNode(node) {
-        let current = node;
-        while (current.left)
-            current = current.left;
-        return current;
-    }
-
-    // Eliminar nodo AVL
-    delete(node, codigoNumerico) {
-        if (!node) return node;
-
-        if (codigoNumerico < node.data.codigoNumerico) {
-            node.left = this.delete(node.left, codigoNumerico);
-        } else if (codigoNumerico > node.data.codigoNumerico) {
-            node.right = this.delete(node.right, codigoNumerico);
-        } else {
-            // Nodo con un hijo o sin hijos
-            if (!node.left || !node.right) {
-                let temp = node.left ? node.left : node.right;
-
-                if (!temp) {
-                    node = null;
-                } else {
-                    node = temp;
-                }
-            } else {
-                // Nodo con dos hijos
-                let temp = this.minValueNode(node.right);
-                node.data = temp.data;
-                node.right = this.delete(node.right, temp.data.codigoNumerico);
-            }
-        }
-
-        if (!node) return node;
-
-        this.update(node);
-
-        if (this.stressMode) return node;
-
-        let balance = this.getBalance(node);
-
-        // LL
+        // LL — rotación simple derecha
         if (balance > 1 && this.getBalance(node.left) >= 0) {
             this.rotations.push("LL");
             return this.rotateRight(node);
         }
-
-        // LR
+        // LR — rotación doble izquierda-derecha
         if (balance > 1 && this.getBalance(node.left) < 0) {
             this.rotations.push("LR");
             node.left = this.rotateLeft(node.left);
             return this.rotateRight(node);
         }
-
-        // RR
+        // RR — rotación simple izquierda
         if (balance < -1 && this.getBalance(node.right) <= 0) {
             this.rotations.push("RR");
             return this.rotateLeft(node);
         }
-
-        // RL
+        // RL — rotación doble derecha-izquierda
         if (balance < -1 && this.getBalance(node.right) > 0) {
             this.rotations.push("RL");
             node.right = this.rotateRight(node.right);
@@ -196,147 +80,122 @@ class AVL {
         return node;
     }
 
-    // Método público
+    // ─── Inserción ─────────────────────────────────────────────────────────────
+
+    insert(node, data) {
+        if (!node) {
+            // Calcular precioFinal y profit al insertar
+            const precioFinal = data.precioFinal ?? data.precioBase;
+            data.precioFinal  = precioFinal;
+            data.profit       = this._calcProfit(data);
+            return new Node(data);
+        }
+
+        if (data.codigoNumerico < node.data.codigoNumerico)
+            node.left  = this.insert(node.left,  data);
+        else if (data.codigoNumerico > node.data.codigoNumerico)
+            node.right = this.insert(node.right, data);
+        else
+            return node; // duplicado ignorado
+
+        this.update(node);
+
+        return this.stressMode ? node : this.rebalance(node);
+    }
+
+    insertValue(data) {
+        this.root = this.insert(this.root, data);
+    }
+
+    // ─── Eliminación simple (solo el nodo) ────────────────────────────────────
+
+    delete(node, codigoNumerico) {
+        if (!node) return null;
+
+        if (codigoNumerico < node.data.codigoNumerico) {
+            node.left  = this.delete(node.left,  codigoNumerico);
+        } else if (codigoNumerico > node.data.codigoNumerico) {
+            node.right = this.delete(node.right, codigoNumerico);
+        } else {
+            if (!node.left || !node.right) {
+                node = node.left ?? node.right ?? null;
+            } else {
+                const temp = this.minValueNode(node.right);
+                node.data  = { ...temp.data };
+                node.right = this.delete(node.right, temp.data.codigoNumerico);
+            }
+        }
+
+        if (!node) return null;
+        this.update(node);
+        return this.stressMode ? node : this.rebalance(node);
+    }
+
     deleteValue(codigoNumerico) {
         this.root = this.delete(this.root, codigoNumerico);
     }
 
-    deleteSubtree(node, codigoNumerico) {
+    // ─── Cancelación masiva (nodo + toda su descendencia) ─────────────────────
+
+    _deleteSubtree(node, codigoNumerico) {
         if (!node) return null;
 
         if (codigoNumerico < node.data.codigoNumerico) {
-            node.left = this.deleteSubtree(node.left, codigoNumerico);
+            node.left  = this._deleteSubtree(node.left,  codigoNumerico);
         } else if (codigoNumerico > node.data.codigoNumerico) {
-            node.right = this.deleteSubtree(node.right, codigoNumerico);
+            node.right = this._deleteSubtree(node.right, codigoNumerico);
         } else {
-            // Encontró el nodo → eliminar todo el subárbol
-            return null;
+            return null; // elimina todo el subárbol
         }
 
         this.update(node);
-        return this.rebalance(node);
+        return this.stressMode ? node : this.rebalance(node);
     }
 
     cancelSubtree(codigoNumerico) {
         this.massiveDeletions++;
-        this.root = this.deleteSubtree(this.root, codigoNumerico);
+        this.root = this._deleteSubtree(this.root, codigoNumerico);
     }
 
-    rebalanceTree(node) {
+    // ─── Rebalanceo global (modo estrés → rebalanceo diferido) ───────────────
+
+    _rebalanceTree(node) {
         if (!node) return null;
-
-        node.left = this.rebalanceTree(node.left);
-        node.right = this.rebalanceTree(node.right);
-
+        node.left  = this._rebalanceTree(node.left);
+        node.right = this._rebalanceTree(node.right);
         this.update(node);
         return this.rebalance(node);
     }
 
     rebalanceAll() {
-        this.root = this.rebalanceTree(this.root);
+        const rotBefore       = this.rotations.length;
+        this.root             = this._rebalanceTree(this.root);
+        this.rotationsBeforeRebalance = this.rotations.length - rotBefore;
     }
 
-    search(node, codigo) {
+    // ─── Búsqueda ─────────────────────────────────────────────────────────────
+
+    _search(node, codigoNumerico) {
         if (!node) return null;
-
-        if (codigo === node.data.codigoNumerico) return node;
-
-        if (codigo < node.data.codigoNumerico)
-            return this.search(node.left, codigo);
-        else
-            return this.search(node.right, codigo);
+        if (codigoNumerico === node.data.codigoNumerico) return node;
+        if (codigoNumerico  < node.data.codigoNumerico)
+            return this._search(node.left,  codigoNumerico);
+        return this._search(node.right, codigoNumerico);
     }
 
-    find(codigo) {
-        return this.search(this.root, codigo);
+    find(codigoNumerico) {
+        return this._search(this.root, codigoNumerico);
     }
 
-    rebalance(node) {
-        let balance = this.getBalance(node);
+    // ─── Auxiliares ───────────────────────────────────────────────────────────
 
-        // LL
-        if (balance > 1 && this.getBalance(node.left) >= 0) {
-            this.rotations.push("LL");
-            return this.rotateRight(node);
-        }
-
-        // RR
-        if (balance < -1 && this.getBalance(node.right) <= 0) {
-            this.rotations.push("RR");
-            return this.rotateLeft(node);
-        }
-
-        // LR
-        if (balance > 1 && this.getBalance(node.left) < 0) {
-            this.rotations.push("LR");
-            node.left = this.rotateLeft(node.left);
-            return this.rotateRight(node);
-        }
-
-        // RL
-        if (balance < -1 && this.getBalance(node.right) > 0) {
-            this.rotations.push("RL");
-            node.right = this.rotateRight(node.right);
-            return this.rotateLeft(node);
-        }
-
-        return node;
+    minValueNode(node) {
+        let cur = node;
+        while (cur.left) cur = cur.left;
+        return cur;
     }
 
-    inOrder(node, result = []) {
-        if (node) {
-            this.inOrder(node.left, result);
-            result.push(node.data.codigoNumerico);
-            this.inOrder(node.right, result);
-        }
-        return result;
-    }
-
-    preOrder(node, result = []) {
-        if (node) {
-            result.push(node.data.codigoNumerico);
-            this.preOrder(node.left, result);
-            this.preOrder(node.right, result);
-        }
-        return result;
-    }
-
-    postOrder(node, result = []) {
-        if (node) {
-            this.postOrder(node.left, result);
-            this.postOrder(node.right, result);
-            result.push(node.data.codigoNumerico);
-        }
-        return result;
-    }
-
-    bfs() {
-        let result = [];
-        let queue = [];
-
-        if (this.root) queue.push(this.root);
-
-        while (queue.length > 0) {
-            let node = queue.shift();
-            result.push(node.data.codigoNumerico);
-
-            if (node.left) queue.push(node.left);
-            if (node.right) queue.push(node.right);
-        }
-
-        return result;
-    }
-
-    getDepth(node, codigo, depth = 0) {
-        if (!node) return -1;
-
-        if (codigo === node.data.codigoNumerico) return depth;
-
-        if (codigo < node.data.codigoNumerico)
-            return this.getDepth(node.left, codigo, depth + 1);
-        else
-            return this.getDepth(node.right, codigo, depth + 1);
-    }
+    getTreeHeight() { return this.getHeight(this.root); }
 
     countLeaves(node) {
         if (!node) return 0;
@@ -344,12 +203,21 @@ class AVL {
         return this.countLeaves(node.left) + this.countLeaves(node.right);
     }
 
-    getTreeHeight() {
-        return this.getHeight(this.root);
+    // Cálculo de profit con fórmula completa
+    _calcProfit(data) {
+        const base    = data.precioFinal ?? data.precioBase ?? 0;
+        const pax     = data.pasajeros   ?? 0;
+        const descuento = data.promocion ? base * pax * 0.10 : 0;
+        return pax * base - descuento;
     }
 
-
+    // Recalcular profits de todo el árbol (llamar tras cambios de precio/profundidad)
+    recalcProfits(node) {
+        if (!node) return;
+        node.data.profit = this._calcProfit(node.data);
+        this.recalcProfits(node.left);
+        this.recalcProfits(node.right);
+    }
 }
 
-
-export default AVL;
+// AVL disponible globalmente

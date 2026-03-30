@@ -31,6 +31,11 @@ class Queue {
     clear() {
         this.items = [];
     }
+
+    /** Retorna todos los elementos sin modificar la cola */
+    _getAll() {
+        return [...this.items];
+    }
 }
 
-export default Queue;
+// Queue disponible globalmente
