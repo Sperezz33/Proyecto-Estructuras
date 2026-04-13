@@ -1,6 +1,6 @@
 /**
- * Árbol Binario de Búsqueda (BST) — Sin balanceo automático
- * Usado en paralelo con el AVL para comparación de rendimiento
+ * Binary Search Tree (BST) — No automatic balancing
+ * Used in parallel with the AVL for performance comparison
  */
 class BST {
     constructor() {
@@ -8,14 +8,14 @@ class BST {
         this.massiveDeletions = 0;
     }
 
-    // ─── Inserción ─────────────────────────────────────────────────────────────
+    // ─── Insertion ─────────────────────────────────────────────────────────────
 
     _insert(node, data) {
         if (!node) {
             const precioFinal = data.precioFinal ?? data.precioBase ?? 0;
             const pax         = data.pasajeros   ?? 0;
-            const descuento   = data.promocion ? precioFinal * pax * 0.10 : 0;
             data.precioFinal  = precioFinal;
+            const descuento   = getPromotionDiscount(data);
             data.profit       = pax * precioFinal - descuento;
             return {
                 data,
@@ -62,7 +62,7 @@ class BST {
         this.root = this._delete(this.root, codigoNumerico);
     }
 
-    // ─── Cancelación masiva ────────────────────────────────────────────────────
+    // ─── Mass cancellation ────────────────────────────────────────────────────
 
     _cancelSubtree(node, codigoNumerico) {
         if (!node) return null;
@@ -77,14 +77,14 @@ class BST {
         this.root = this._cancelSubtree(this.root, codigoNumerico);
     }
 
-    // ─── Rebalanceo (stub) — el BST no balancea pero el método debe existir ───
+    // ─── Rebalance (stub) — BST does not balance, but method must exist ───
 
     rebalanceAll() {
-        // El BST no tiene balanceo automático.
-        // Este método existe para mantener la interfaz compatible con app.js
+        // BST has no automatic balancing.
+        // This method exists to keep the interface compatible with app.js
     }
 
-    // ─── Búsqueda ─────────────────────────────────────────────────────────────
+    // ─── Search ─────────────────────────────────────────────────────────────
 
     find(codigoNumerico, node = this.root) {
         if (!node) return null;
@@ -93,7 +93,7 @@ class BST {
         return this.find(codigoNumerico, node.right);
     }
 
-    // ─── Auxiliares ───────────────────────────────────────────────────────────
+    // ─── Helpers ───────────────────────────────────────────────────────────
 
     _minNode(node) {
         while (node.left) node = node.left;
@@ -117,4 +117,4 @@ class BST {
     }
 }
 
-// BST disponible globalmente
+// BST available globally

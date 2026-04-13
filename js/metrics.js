@@ -1,6 +1,6 @@
-// metrics.js — Cálculo de métricas para árboles AVL y BST (sin ES modules)
+// metrics.js — Metrics calculation for AVL and BST trees (without ES modules)
 
-// ─── Altura y nodos ─────────────────────────────────────────────────────────
+// ─── Height and nodes ─────────────────────────────────────────────────────────
 
 function getHeight(node) {
     if (!node) return 0;
@@ -18,7 +18,7 @@ function countLeaves(node) {
     return countLeaves(node.left) + countLeaves(node.right);
 }
 
-// ─── Recorridos ──────────────────────────────────────────────────────────────
+// ─── Traversals ──────────────────────────────────────────────────────────────
 
 function BFS(root) {
     if (!root) return [];
@@ -56,7 +56,7 @@ function DFS_PostOrder(node, result = []) {
     return result;
 }
 
-// ─── Rotaciones ──────────────────────────────────────────────────────────────
+// ─── Rotations ──────────────────────────────────────────────────────────────
 
 function countRotations(avl) {
     const c = { LL: 0, RR: 0, LR: 0, RL: 0 };
@@ -64,7 +64,7 @@ function countRotations(avl) {
     return c;
 }
 
-// ─── Nodos críticos ───────────────────────────────────────────────────────────
+// ─── Critical nodes ───────────────────────────────────────────────────────────
 
 function findCriticalNodes(node, result = []) {
     if (!node) return result;
@@ -74,7 +74,7 @@ function findCriticalNodes(node, result = []) {
     return result;
 }
 
-// ─── Auditoría AVL ───────────────────────────────────────────────────────────
+// ─── AVL audit ───────────────────────────────────────────────────────────
 
 function auditAVL(node, issues = []) {
     if (!node) return issues;
@@ -107,20 +107,30 @@ function auditAVL(node, issues = []) {
     return issues;
 }
 
-// ─── Rentabilidad ─────────────────────────────────────────────────────────────
+// ─── Promotion and profitability ─────────────────────────────────────────────────
+
+function getPromotionDiscount(data) {
+    if (!data) return 0;
+    const ingresos = (data.pasajeros ?? 0) * (data.precioFinal ?? data.precioBase ?? 0);
+    if (typeof data.promocion === "number") return Math.max(0, data.promocion);
+    if (data.promocion === true) return ingresos * 0.10;
+    return 0;
+}
+
+// ─── Profitability ─────────────────────────────────────────────────────────────
 
 /**
  * rentabilidad = pasajeros × precioFinal
- *              - descuento promoción (10% si promocion=true)
- *              + penalización crítica (25% precioBase×pasajeros si critico=true)
+ *              - promoción (si aplica)
+ *              + penalización crítica (si aplica)
  */
 function calcRentabilidad(node) {
     if (!node) return 0;
-    const d          = node.data;
-    const ingresos   = (d.pasajeros ?? 0) * (d.precioFinal ?? d.precioBase ?? 0);
-    const descuento  = d.promocion  ? ingresos * 0.10 : 0;
-    const penaliz    = node.critico ? (d.precioBase ?? 0) * (d.pasajeros ?? 0) * 0.25 : 0;
-    return ingresos - descuento + penaliz;
+    const d         = node.data;
+    const ingresos  = (d.pasajeros ?? 0) * (d.precioFinal ?? d.precioBase ?? 0);
+    const promocion = getPromotionDiscount(d);
+    const penaliz   = node.critico ? (d.precioBase ?? 0) * (d.pasajeros ?? 0) * 0.25 : 0;
+    return ingresos - promocion + penaliz;
 }
 
 function getMaxProfit(node) {

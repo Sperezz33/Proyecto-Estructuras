@@ -1,9 +1,9 @@
 /**
- * Implementación del Árbol AVL con balanceo automático
- * Registra todas las rotaciones por tipo: LL, RR, LR, RL
- * Soporta modo estrés (sin balanceo automático)
+ * AVL Tree implementation with automatic balancing
+ * Records every rotation by type: LL, RR, LR, RL
+ * Supports stress mode (no automatic balancing)
  */
-// Node disponible globalmente
+// Node available globally
 
 class AVL {
     constructor() {
@@ -11,10 +11,10 @@ class AVL {
         this.rotations        = [];      // historial de rotaciones ["LL","RR",...]
         this.stressMode       = false;
         this.massiveDeletions = 0;
-        this.rotationsBeforeRebalance = 0; // para medir costo del rebalanceo diferido
+        this.rotationsBeforeRebalance = 0; // to measure deferred rebalance cost
     }
 
-    // ─── Utilidades de altura y balance ───────────────────────────────────────
+    // ─── Height and balance utilities ───────────────────────────────────────
 
     getHeight(node) { return node ? node.height : 0; }
 
@@ -49,28 +49,28 @@ class AVL {
         return y;
     }
 
-    // ─── Rebalanceo de un nodo ─────────────────────────────────────────────────
+    // ─── Rebalance a node ─────────────────────────────────────────────────
 
     rebalance(node) {
         const balance = this.getBalance(node);
 
-        // LL — rotación simple derecha
+        // LL — right single rotation
         if (balance > 1 && this.getBalance(node.left) >= 0) {
             this.rotations.push("LL");
             return this.rotateRight(node);
         }
-        // LR — rotación doble izquierda-derecha
+        // LR — left-right double rotation
         if (balance > 1 && this.getBalance(node.left) < 0) {
             this.rotations.push("LR");
             node.left = this.rotateLeft(node.left);
             return this.rotateRight(node);
         }
-        // RR — rotación simple izquierda
+        // RR — left single rotation
         if (balance < -1 && this.getBalance(node.right) <= 0) {
             this.rotations.push("RR");
             return this.rotateLeft(node);
         }
-        // RL — rotación doble derecha-izquierda
+        // RL — right-left double rotation
         if (balance < -1 && this.getBalance(node.right) > 0) {
             this.rotations.push("RL");
             node.right = this.rotateRight(node.right);
@@ -96,7 +96,7 @@ class AVL {
         else if (data.codigoNumerico > node.data.codigoNumerico)
             node.right = this.insert(node.right, data);
         else
-            return node; // duplicado ignorado
+            return node; // duplicate ignored
 
         this.update(node);
 
@@ -107,7 +107,7 @@ class AVL {
         this.root = this.insert(this.root, data);
     }
 
-    // ─── Eliminación simple (solo el nodo) ────────────────────────────────────
+    // ─── Simple deletion (node only) ────────────────────────────────────
 
     delete(node, codigoNumerico) {
         if (!node) return null;
@@ -135,7 +135,7 @@ class AVL {
         this.root = this.delete(this.root, codigoNumerico);
     }
 
-    // ─── Cancelación masiva (nodo + toda su descendencia) ─────────────────────
+    // ─── Mass cancellation (node + entire subtree) ─────────────────────
 
     _deleteSubtree(node, codigoNumerico) {
         if (!node) return null;
@@ -157,7 +157,7 @@ class AVL {
         this.root = this._deleteSubtree(this.root, codigoNumerico);
     }
 
-    // ─── Rebalanceo global (modo estrés → rebalanceo diferido) ───────────────
+    // ─── Global rebalance (stress mode → deferred rebalance) ───────────────
 
     _rebalanceTree(node) {
         if (!node) return null;
@@ -203,15 +203,17 @@ class AVL {
         return this.countLeaves(node.left) + this.countLeaves(node.right);
     }
 
-    // Cálculo de profit con fórmula completa
+    // Cálculo de profit/rentabilidad usando la misma lógica de métricas
     _calcProfit(data) {
-        const base    = data.precioFinal ?? data.precioBase ?? 0;
-        const pax     = data.pasajeros   ?? 0;
-        const descuento = data.promocion ? base * pax * 0.10 : 0;
-        return pax * base - descuento;
+        const base      = data.precioFinal ?? data.precioBase ?? 0;
+        const pax       = data.pasajeros   ?? 0;
+        const ingresos  = pax * base;
+        const promocion = getPromotionDiscount(data);
+        const penaliz   = data.critico ? (data.precioBase ?? 0) * pax * 0.25 : 0;
+        return ingresos - promocion + penaliz;
     }
 
-    // Recalcular profits de todo el árbol (llamar tras cambios de precio/profundidad)
+    // Recalculate profits for the entire tree (call after price/depth changes)
     recalcProfits(node) {
         if (!node) return;
         node.data.profit = this._calcProfit(node.data);
@@ -220,4 +222,4 @@ class AVL {
     }
 }
 
-// AVL disponible globalmente
+// AVL available globally

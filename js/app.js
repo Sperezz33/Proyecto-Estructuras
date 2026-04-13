@@ -176,7 +176,12 @@ function buildTopologyNode(nd) {
     if (!nd) return null;
     const codigoNumerico = parseCodigo(nd.codigo);
     const precioFinal    = nd.precioFinal ?? nd.precioBase ?? 0;
-    const profit = (nd.pasajeros ?? 0) * precioFinal * (nd.promocion ? 0.9 : 1);
+    const nodeData       = {
+        ...nd,
+        precioFinal,
+        pasajeros: nd.pasajeros ?? 0
+    };
+    const profit = nodeData.pasajeros * precioFinal - getPromotionDiscount(nodeData);
     return {
         data: {
             codigo:         nd.codigo,
@@ -523,7 +528,7 @@ function buscarVuelo() {
         <div class="fi-row"><span class="fi-label">Precio final</span><span class="fi-val ${node.critico ? "fi-crit" : ""}">$${d.precioFinal?.toFixed(2)} ${node.critico ? "⚠️ +25%" : ""}</span></div>
         <div class="fi-row"><span class="fi-label">Pasajeros</span><span class="fi-val">${d.pasajeros}</span></div>
         <div class="fi-row"><span class="fi-label">Prioridad</span><span class="fi-val">${d.prioridad ?? "—"}</span></div>
-        <div class="fi-row"><span class="fi-label">Promoción</span><span class="fi-val">${d.promocion ? "✅ Sí (–10%)" : "No"}</span></div>
+        <div class="fi-row"><span class="fi-label">Promoción</span><span class="fi-val">${d.promocion ? "✅ Sí" : "No"}</span></div>
         <div class="fi-row"><span class="fi-label">Alerta</span><span class="fi-val ${d.alerta ? "fi-alert" : ""}">${d.alerta ? "🚨 Sí" : "No"}</span></div>
         <div class="fi-row"><span class="fi-label">Rentabilidad</span><span class="fi-val">$${rent.toLocaleString()}</span></div>
         <div class="fi-row"><span class="fi-label">Altura nodo</span><span class="fi-val">${node.height}</span></div>
