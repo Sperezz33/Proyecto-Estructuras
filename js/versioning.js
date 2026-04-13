@@ -1,7 +1,8 @@
 /**
- * VersionManager — Sistema de versionado persistente del árbol AVL/BST
- * Permite guardar snapshots con nombre y restaurarlos en cualquier momento
- * Las versiones sobreviven recargas de página gracias a localStorage
+ * VersionManager — Sistema de versionado persistente del árbol AVL/BST.
+ *
+ * Guarda snapshots completos de estructuras de árbol y metadatos en
+ * `localStorage`, facilitando restauraciones y exportaciones de estado.
  */
 class VersionManager {
     constructor() {
@@ -14,6 +15,14 @@ class VersionManager {
      * @param {Object} avlRoot - Raíz del árbol AVL
      * @param {Object} bstRoot - Raíz del árbol BST
      * @param {Object} meta  - Metadatos opcionales (maxDepth, rotaciones, etc.)
+     */
+    /**
+     * Guarda una nueva versión con nombre y metadatos.
+     *
+     * @param {string} name
+     * @param {Object} avlRoot
+     * @param {Object} bstRoot
+     * @param {Object} [meta={}] 
      */
     save(name, avlRoot, bstRoot, meta = {}) {
         if (!name || name.trim() === "") {
@@ -45,6 +54,12 @@ class VersionManager {
      * @param {string|number} nameOrIndex
      * @returns {{avl, bst, meta}} o null si no existe
      */
+    /**
+     * Restaura una versión existente por nombre o índice 1-based.
+     *
+     * @param {string|number} nameOrIndex
+     * @returns {{avl: Object, bst: Object, meta: Object}|null}
+     */
     restore(nameOrIndex) {
         let v;
         if (typeof nameOrIndex === "number") {
@@ -63,6 +78,11 @@ class VersionManager {
     /**
      * Elimina una versión por nombre
      */
+    /**
+     * Elimina una versión guardada por su nombre.
+     *
+     * @param {string} name
+     */
     remove(name) {
         this.versions = this.versions.filter(v => v.name !== name);
         this._persist();
@@ -70,6 +90,11 @@ class VersionManager {
 
     /**
      * Retorna lista resumida de versiones disponibles
+     */
+    /**
+     * Retorna la lista de versiones disponibles con metadatos básicos.
+     *
+     * @returns {Array}
      */
     list() {
         return this.versions.map((v, i) => ({

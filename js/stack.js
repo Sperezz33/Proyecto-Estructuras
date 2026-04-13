@@ -1,5 +1,9 @@
-// stack.js
-// Implementación de pila para UNDO
+/**
+ * stack.js
+ *
+ * Pila simple para la funcionalidad de deshacer. Guarda snapshots completos
+ * del estado de los árboles como cadenas JSON.
+ */
 
 class Stack {
     constructor() {

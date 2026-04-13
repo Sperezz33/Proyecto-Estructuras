@@ -1,7 +1,11 @@
 /**
- * AVL Tree implementation with automatic balancing
- * Records every rotation by type: LL, RR, LR, RL
- * Supports stress mode (no automatic balancing)
+ * AVL Tree implementation with automatic balancing.
+ *
+ * El árbol mantiene balance estricto mediante rotaciones y calcula
+ * factores de equilibrio tras cada modificación. Se usa para gestionar
+ * vuelos ordenados por `codigoNumerico`.
+ *
+ * El modo estrés permite posponer el rebalanceo y evaluar degradación.
  */
 // Node available globally
 
@@ -29,6 +33,12 @@ class AVL {
 
     // ─── Rotaciones ───────────────────────────────────────────────────────────
 
+    /**
+     * Rotación simple a la derecha: resuelve el caso LL.
+     *
+     * @param {Object} y - nodo raíz del subárbol desbalanceado
+     * @returns {Object} nueva raíz del subárbol
+     */
     rotateRight(y) {
         let x  = y.left;
         let T2 = x.right;
@@ -39,6 +49,12 @@ class AVL {
         return x;
     }
 
+    /**
+     * Rotación simple a la izquierda: resuelve el caso RR.
+     *
+     * @param {Object} x - nodo raíz del subárbol desbalanceado
+     * @returns {Object} nueva raíz del subárbol
+     */
     rotateLeft(x) {
         let y  = x.right;
         let T2 = y.left;
@@ -82,6 +98,13 @@ class AVL {
 
     // ─── Inserción ─────────────────────────────────────────────────────────────
 
+    /**
+     * Inserta un vuelo en el árbol AVL y rebalancea el subárbol.
+     *
+     * @param {Object|null} node
+     * @param {Object} data
+     * @returns {Object}
+     */
     insert(node, data) {
         if (!node) {
             // Calcular precioFinal y profit al insertar
@@ -109,6 +132,13 @@ class AVL {
 
     // ─── Simple deletion (node only) ────────────────────────────────────
 
+    /**
+     * Elimina un nodo por su clave numérica y restaura balance AVL.
+     *
+     * @param {Object|null} node
+     * @param {number} codigoNumerico
+     * @returns {Object|null}
+     */
     delete(node, codigoNumerico) {
         if (!node) return null;
 

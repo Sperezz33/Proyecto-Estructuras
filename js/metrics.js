@@ -1,7 +1,18 @@
-// metrics.js — Metrics calculation for AVL and BST trees (without ES modules)
+/**
+ * metrics.js
+ *
+ * Funciones auxiliares de evaluación para los árboles AVL/BST, incluyendo
+ * recorridos, auditoría, métricas de rentabilidad y análisis de balance.
+ */
 
 // ─── Height and nodes ─────────────────────────────────────────────────────────
 
+/**
+ * Calcula la altura de un subárbol de forma recursiva.
+ *
+ * @param {Object|null} node
+ * @returns {number}
+ */
 function getHeight(node) {
     if (!node) return 0;
     return 1 + Math.max(getHeight(node.left), getHeight(node.right));
@@ -20,6 +31,12 @@ function countLeaves(node) {
 
 // ─── Traversals ──────────────────────────────────────────────────────────────
 
+/**
+ * Recorre el árbol en anchura y devuelve la lista de códigos de vuelo.
+ *
+ * @param {Object|null} root
+ * @returns {Array<string>}
+ */
 function BFS(root) {
     if (!root) return [];
     const queue = [root], result = [];
@@ -76,6 +93,13 @@ function findCriticalNodes(node, result = []) {
 
 // ─── AVL audit ───────────────────────────────────────────────────────────
 
+/**
+ * Valida la propiedad AVL sobre todos los nodos y recopila inconsistencias.
+ *
+ * @param {Object|null} node
+ * @param {Array} [issues=[]]
+ * @returns {Array}
+ */
 function auditAVL(node, issues = []) {
     if (!node) return issues;
 

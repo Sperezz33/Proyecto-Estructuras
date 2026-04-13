@@ -1,8 +1,18 @@
 /**
- * Clase Node — Representa un nodo en los árboles AVL y BST
- * Contiene datos completos de vuelo y propiedades de balanceo AVL
+ * node.js
+ *
+ * Representación de un nodo de vuelo en el árbol. Incluye campos de negocio
+ * y propiedades de estructura necesarias para AVL/BST.
+ */
+/**
+ * Clase Node — Representa un nodo en los árboles AVL y BST.
+ *
+ * Almacena la información del vuelo y datos de balanceo utilizados por AVL.
  */
 class Node {
+    /**
+     * @param {Object} data - Objeto con información del vuelo
+     */
     /**
      * @param {Object} data - Objeto con información del vuelo
      */

@@ -1,3 +1,13 @@
+/**
+ * app.js
+ *
+ * Coordina la aplicación SkyBalance AVL: carga de datos, eventos de UI,
+ * sincronización de AVL/BST, métricas y operaciones de negocio.
+ *
+ * El archivo espera clases globales cargadas desde index.html sin usar
+ * módulos ES, lo que hace explícita la dependencia de orden de carga.
+ */
+
 // Todas las clases y funciones están disponibles globalmente
 // cargadas en order desde index.html (sin ES modules)
 
@@ -15,11 +25,38 @@ let maxDepthAllowed = parseInt(document.getElementById("depthLimitInput").value)
 
 // ═══════════════════════════════════ UTILIDADES
 
-/** Extrae el código numérico de un código string o número */
+/**
+ * Extrae el código numérico a partir de un identificador de vuelo.
+ *
+ * Usa esta clave numérica para ordenar nodes en el árbol AVL/BST.
+ * Ejemplo: "SB400" → 400.
+ *
+ * @param {string|number} codigo
+ * @returns {number}
+ */
 function parseCodigo(codigo) {
     if (typeof codigo === "number") return codigo;
     const n = parseInt(String(codigo).replace(/\D/g, ""));
     return isNaN(n) ? 0 : n;
+}
+
+/**
+ * Muestra un mensaje breve en pantalla para la interacción del usuario.
+ *
+ * @param {string} msg
+ * @param {string} [type="info"]
+ * @param {number} [duration=3000]
+ */
+function toast(msg, type = "info", duration = 3000) {
+    const icons = { info: "ℹ️", success: "✅", warn: "⚠️", error: "❌" };
+    const el = document.createElement("div");
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `<span>${icons[type] || "ℹ️"}</span><span>${msg}</span>`;
+    document.getElementById("toastContainer").appendChild(el);
+    setTimeout(() => {
+        el.classList.add("out");
+        setTimeout(() => el.remove(), 300);
+    }, duration);
 }
 
 /** Toast de notificación */
@@ -64,7 +101,15 @@ document.addEventListener("keydown", e => {
 
 // ═══════════════════════════════════ PROFUNDIDAD Y PENALIZACIÓN
 
-/** Recalcula depth y penalización en todo el árbol */
+/**
+ * Recalcula la profundidad de cada nodo y aplica penalizaciones de precio.
+ *
+ * Si un nodo excede la profundidad límite, se marca como crítico y se
+ * ajusta su `precioFinal` para reflejar la penalización por exceso de profundidad.
+ *
+ * @param {Object} node
+ * @param {number} [depth=0]
+ */
 function applyDepthPenalty(node, depth = 0) {
     if (!node) return;
     node.depth = depth;
@@ -85,6 +130,17 @@ function applyDepthPenalty(node, depth = 0) {
     applyDepthPenalty(node.right, depth + 1);
 }
 
+/**
+ * Sincroniza la vista y métricas tras cualquier cambio de estructura.
+ */
+function refreshAll() {
+    applyDepthPenalty(avl.root);
+    applyDepthPenalty(bst.root);
+    renderer.animate(avl.root, bst.root);
+    updateMetrics();
+    updateDepthBadge();
+}
+
 function refreshAll() {
     applyDepthPenalty(avl.root);
     applyDepthPenalty(bst.root);
@@ -99,6 +155,12 @@ function updateDepthBadge() {
 
 // ═══════════════════════════════════ HISTORIAL (UNDO)
 
+/**
+ * Guarda un snapshot profundo del estado actual para permitir undo.
+ *
+ * La copia se realiza con JSON para preservar el árbol completo y evitar
+ * referencias compartidas entre estados.
+ */
 function saveState() {
     historyStack.push({
         avl:       JSON.parse(JSON.stringify(avl.root)),
@@ -108,6 +170,9 @@ function saveState() {
     });
 }
 
+/**
+ * Restaura el estado anterior desde la pila de deshacer.
+ */
 function undo() {
     if (historyStack.isEmpty()) { toast("No hay acciones para deshacer", "warn"); return; }
     const prev = historyStack.pop();

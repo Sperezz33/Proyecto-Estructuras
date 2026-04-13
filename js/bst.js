@@ -1,6 +1,8 @@
 /**
- * Binary Search Tree (BST) — No automatic balancing
- * Used in parallel with the AVL for performance comparison
+ * Binary Search Tree (BST) — No automatic balancing.
+ *
+ * Se usa como referencia comparativa frente al AVL para evaluar la
+ * mejora de rendimiento y altura en estructuras autoequilibradas.
  */
 class BST {
     constructor() {
@@ -10,6 +12,13 @@ class BST {
 
     // ─── Insertion ─────────────────────────────────────────────────────────────
 
+    /**
+     * Inserta recursivamente en el BST sin aplicar rebalanceo.
+     *
+     * @param {Object|null} node
+     * @param {Object} data
+     * @returns {Object}
+     */
     _insert(node, data) {
         if (!node) {
             const precioFinal = data.precioFinal ?? data.precioBase ?? 0;

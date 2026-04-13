@@ -1,6 +1,8 @@
 /**
- * Renderer — Dibuja los árboles AVL y BST en un canvas HTML5
- * Soporta árboles grandes con escalado dinámico y colores según estado del nodo
+ * renderer.js
+ *
+ * Representa visualmente los árboles AVL y BST en un canvas y colorea
+ * nodos según estado crítico, desbalance o tipo de árbol.
  */
 
 class Renderer {
@@ -52,6 +54,14 @@ class Renderer {
 
     // ─── Dibujo de un nodo ────────────────────────────────────────────────────
 
+    /**
+     * Dibuja un nodo circular con etiqueta y datos de balance.
+     *
+     * @param {number} x
+     * @param {number} y
+     * @param {Object} node
+     * @param {string} type
+     */
     _drawNode(x, y, node, type) {
         const ctx = this.ctx;
         const { fill, glow } = this._nodeColor(node, type);
